@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MrP.Core;
 
 namespace MrP
 {
@@ -57,7 +58,7 @@ namespace MrP
         {
             var splitCmds = line.Split(' ');
             var cmd = splitCmds[0];
-            var args = splitCmds.ToList().GetRange(1, splitCmds.Length - 1).ToArray();
+            var args = splitCmds.Range(1);
             foreach (var ca in _consoleApps)
             {
                 if (ca.IsCommand(cmd))
