@@ -57,15 +57,14 @@ namespace MrP
         private CommandActionEnum ExecuteLine(string line)
         {
             var splitCmds = line.ToLower().Split(' ');
-            var cmd = splitCmds[0];
-            var args = splitCmds.Range(1);
             foreach (var ca in _consoleApps)
             {
-                if (ca.IsCommand(cmd))
+                int foundCmd = ca.IsCommand(splitCmds);
+                if (foundCmd >= 0)
                 {
                     try
                     {
-                        return ca.Run(args);
+                        return ca.Run(splitCmds.Range(foundCmd));
                     }
                     catch (Exception e)
                     {
@@ -75,7 +74,7 @@ namespace MrP
                 }
             }
 
-            Console.Error.WriteLine($"Could not find any listerners for command '{cmd}'");
+            Console.Error.WriteLine($"Could not find any listerners for command '{line}'");
             return CommandActionEnum.Continue;
         }
     }
@@ -96,9 +95,17 @@ namespace MrP
             Commands = cmds;
         }
 
-        public bool IsCommand(string cmd)
+        public int IsCommand(string[] cmds)
         {
-            return Commands.Any(x => x.Equals(cmd, StringComparison.CurrentCultureIgnoreCase));
+            foreach (var x in Commands)
+            {
+                var curCmds = x.Split(' ');
+                var equals = curCmds.Equals<string, string>(cmds.Range(0, curCmds.Length));
+                if (equals)
+                    return curCmds.Length;
+            }
+
+            return -1;
         }
 
         public static IEnumerable<AConsoleImplementation> GetSubClasses()
