@@ -56,7 +56,7 @@ namespace MrP
 
         private CommandActionEnum ExecuteLine(string line)
         {
-            var splitCmds = line.Split(' ');
+            var splitCmds = line.ToLower().Split(' ');
             var cmd = splitCmds[0];
             var args = splitCmds.Range(1);
             foreach (var ca in _consoleApps)
