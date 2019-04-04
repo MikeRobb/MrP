@@ -7,64 +7,53 @@ namespace MrP
 {
     public class ConsoleController
     {
-        private readonly IList<AConsoleImplementation> _consoleApps;
+        private readonly IDictionary<string, AConsoleImplementation> _commandToApps;
+        private CommandActionEnum _status = CommandActionEnum.Continue;
 
         public ConsoleController()
         {
-            _consoleApps = AConsoleImplementation.GetSubClasses().ToList();
+            _commandToApps = new Dictionary<string, AConsoleImplementation>();
+            foreach (var ca in AConsoleImplementation.GetSubClasses())
+            {
+                foreach (var c in ca.Commands)
+                {
+                    if (_commandToApps.ContainsKey(c))
+                    {
+                        var oldCommand = _commandToApps[c];
+                        Console.Error.WriteLine(
+                            $"Duplicate commands '{c}' with console apps '{oldCommand.GetType().Name}' and '{ca.GetType().Name}'");
+                        _status = CommandActionEnum.Exit;
+                        continue;
+                    }
+
+                    _commandToApps[c] = ca;
+                }
+            }
         }
 
         public void Run()
         {
-            Console.WriteLine("Checking commands are unique");
-            CommandActionEnum curAction = CommandsAreValid();
-
-            bool firstRun = true;
-            while (curAction == CommandActionEnum.Continue)
+            Console.WriteLine("Ready!");
+            while (_status == CommandActionEnum.Continue)
             {
-                if (firstRun)
-                {
-                    firstRun = false;
-                    Console.WriteLine("Ready!");
-                }
-
-                curAction = ExecuteLine(Console.ReadLine());
+                _status = ExecuteLine(Console.ReadLine());
             }
 
-            if (curAction == CommandActionEnum.Crash)
+            if (_status == CommandActionEnum.Crash)
                 Console.Error.WriteLine("Crash!");
-        }
-
-        private CommandActionEnum CommandsAreValid()
-        {
-            var registeredCommands = new HashSet<string>();
-            foreach (var ap in _consoleApps)
-            {
-                foreach (var c in ap.Commands)
-                {
-                    var isUnique = registeredCommands.Add(c);
-                    if (isUnique == false)
-                    {
-                        Console.Error.WriteLine($"Command {c} has been defined in multiple applications");
-                        return CommandActionEnum.Exit;
-                    }
-                }
-            }
-
-            return CommandActionEnum.Continue;
         }
 
         private CommandActionEnum ExecuteLine(string line)
         {
             var splitCmds = line.ToLower().Split(' ');
-            foreach (var ca in _consoleApps)
+            foreach (var ca in _commandToApps.OrderByDescending(x => x.Key.Length))
             {
-                int foundCmd = ca.IsCommand(splitCmds);
-                if (foundCmd >= 0)
+                var curCmd = ca.Key.Split(' ');
+                if (curCmd.Equals<string, string>(splitCmds.Range(0, curCmd.Length)))
                 {
                     try
                     {
-                        return ca.Run(splitCmds.Range(foundCmd));
+                        return ca.Value.Run(splitCmds.Range(curCmd.Length));
                     }
                     catch (Exception e)
                     {

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MrP.ConsoleApps
+﻿namespace MrP.ConsoleApps
 {
     public class Exit : AConsoleImplementation
     {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 
 namespace MrP.Core
 {
@@ -10,6 +7,12 @@ namespace MrP.Core
         public static T[] Range<T>(this T[] arr, int startIndex, int? count = null)
         {
             if (!count.HasValue)
+                count = arr.Length - startIndex;
+
+            if (startIndex > arr.Length)
+                return new T[0];
+
+            if (startIndex + count > arr.Length)
                 count = arr.Length - startIndex;
 
             return arr.ToList().GetRange(startIndex, count.Value).ToArray();
