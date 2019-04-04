@@ -6,19 +6,13 @@ namespace MrP
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Constructing ConsoleController...");
             var cc = new ConsoleController();
-            Console.WriteLine("Ready");
 
-            CommandActionEnum curAction = cc.Run(Console.ReadLine());
-            while (curAction == CommandActionEnum.Continue)
-            {
-                curAction = cc.Run(Console.ReadLine());
-            }
+            Console.WriteLine("Running ConsoleController...");
+            cc.Run();
 
-            if (curAction == CommandActionEnum.Crash)
-                Console.Error.WriteLine("Crash!");
-
-            Console.Write("Exiting...");
+            Console.WriteLine("Exited ConsoleController");
             Console.ReadLine();
         }
     }

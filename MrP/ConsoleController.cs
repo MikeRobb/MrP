@@ -6,19 +6,59 @@ namespace MrP
 {
     public class ConsoleController
     {
-        private readonly IList<AConsoleImplementation> consoleApps;
+        private readonly IList<AConsoleImplementation> _consoleApps;
 
         public ConsoleController()
         {
-            consoleApps = AConsoleImplementation.GetSubClasses().ToList();
+            _consoleApps = AConsoleImplementation.GetSubClasses().ToList();
         }
 
-        public CommandActionEnum Run(string line)
+        public void Run()
+        {
+            Console.WriteLine("Checking commands are unique");
+            CommandActionEnum curAction = CommandsAreValid();
+
+            bool firstRun = true;
+            while (curAction == CommandActionEnum.Continue)
+            {
+                if (firstRun)
+                {
+                    firstRun = false;
+                    Console.WriteLine("Ready!");
+                }
+
+                curAction = ExecuteLine(Console.ReadLine());
+            }
+
+            if (curAction == CommandActionEnum.Crash)
+                Console.Error.WriteLine("Crash!");
+        }
+
+        private CommandActionEnum CommandsAreValid()
+        {
+            var registeredCommands = new HashSet<string>();
+            foreach (var ap in _consoleApps)
+            {
+                foreach (var c in ap.Commands)
+                {
+                    var isUnique = registeredCommands.Add(c);
+                    if (isUnique == false)
+                    {
+                        Console.Error.WriteLine($"Command {c} has been defined in multiple applications");
+                        return CommandActionEnum.Exit;
+                    }
+                }
+            }
+
+            return CommandActionEnum.Continue;
+        }
+
+        private CommandActionEnum ExecuteLine(string line)
         {
             var splitCmds = line.Split(' ');
             var cmd = splitCmds[0];
             var args = splitCmds.ToList().GetRange(1, splitCmds.Length - 1).ToArray();
-            foreach (var ca in consoleApps)
+            foreach (var ca in _consoleApps)
             {
                 if (ca.IsCommand(cmd))
                 {
